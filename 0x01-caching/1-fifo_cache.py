@@ -1,41 +1,60 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 '''
 Task 1: FIFO caching.
 '''
 
 
-from collections import OrderedDict
 from base_caching import BaseCaching
 
 
 class FIFOCache(BaseCaching):
-    '''
-    A class `FIFOCache` that inherits from
-    `BaseCaching` and is a caching system.
-    '''
-
+    """
+    A class that inherits from BaseCaching and is a caching system
+    """
     def __init__(self):
+        """
+        It initializes the cache.
+        """
         super().__init__()
-        self.cache_data = OrderedDict()
+        self.data = {}
+        self.next_in, self.next_out = 0, 0
+
+    def _pop(self):
+        """
+        FIFO algorithm, remove element
+        """
+        self.next_out += 1
+        key = self.data[self.next_out]
+        del self.data[self.next_out], self.cache_data[key]
+
+    def _push(self, key, item):
+        """
+        FIFO algorithm, add element
+        """
+        if len(self.cache_data) > BaseCaching.MAX_ITEMS - 1:
+            print("DISCARD: {}".format(self.data[self.next_out + 1]))
+            self._pop()
+        self.cache_data[key] = item
+        self.next_in += 1
+        self.data[self.next_in] = key
 
     def put(self, key, item):
-        '''
-        It assigns to the dictionary `self.cache_data` the
-        `item` value for the key `key`
-        '''
-
-        if key is None or item is None:
-            return
-
-        if len(self.cache_data) > BaseCaching.MAX_ITEMS:
-            first_key, _ = self.cache_data.popitem(last=False)
-            print(f"DISCARD: {first_key}")
-
-        self.cache_data[key] = item
+        """
+        It assigns to the dictionary
+        """
+        if key and item:
+            if key in self.cache_data:
+                self.cache_data[key] = item
+            else:
+                self._push(key, item)
 
     def get(self, key):
-        '''
-        It returns the value in `self.cache_data` linked to `key`
-        '''
-        return self.cache_data.get(key, None)
+        """
+        It returns the value linked
+        """
+        if key is None or self.cache_data.get(key) is None:
+            return None
+        if key in self.cache_data:
+            value = self.cache_data[key]
+            return value
